@@ -1,4 +1,3 @@
-import { Timestamp } from './timestamp';
 import * as moment from 'moment';
 import firebase from 'firebase';
 import * as admin from 'firebase-admin';
