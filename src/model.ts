@@ -1,38 +1,46 @@
 import * as moment from 'moment';
-import firebase from 'firebase';
-import * as admin from 'firebase-admin';
 
-export class M {
-    constructor (private _data) { }
+export class M<K = any> {
+    constructor (private readonly _data: K) { }
 
-    removeProps(keys: string[]) {
-        const data = Object.entries(this._data)
-            .filter(([key, _]) => !keys.includes(key))
-            .reduce((p, [k, v]) => ({...p, [k]: v}), {});
-        return new M(data);
+    removeProps(keys: string[]): M<Partial<K>> {
+        return new M<Partial<K>>(removeProps<K>(this._data, keys));
     }
 
-    filterProps(keys: string[]) {
-        const data = Object.entries(this._data)
-            .filter(([key, _]) => keys.includes(key))
-            .reduce((p, [k, v]) => ({...p, [k]: v}), {});
-        return new M(data);
+    filterProps(keys: string[]): M<Partial<K>> {
+        return new M<Partial<K>>(filterProps<K>(this._data, keys));
     }
 
-    toMoment(firestore: any = firebase.firestore || admin.firestore) {
+    toMoment(firestore: any): M<K> {
         return new M(timestampsToMoments(this._data, firestore));
     }
 
-    toTimestamp(firestore: any = firebase.firestore || admin.firestore) {
+    toTimestamp(firestore: any): M<K> {
       return new M(momentsToTimestamps(this._data, firestore));
     }
 
-    data() {
+    data(): K {
       return this._data;
     }
 }
 
-export function momentsToTimestamps(obj: any, firestore: any): any {
+export interface Firestore {
+  Timestamp: any,
+  FieldValue: any
+}
+
+export function removeProps<T = any>(obj: T, keys: string[]): Partial<T> {
+  return Object.entries(obj)
+    .filter(([key, _]) => !keys.includes(key))
+    .reduce((p, [k, v]) => ({...p, [k]: v}), {} as Partial<T>);
+}
+export function filterProps<T = any>(obj: T, keys: string[]): Partial<T> {
+  return Object.entries(obj)
+    .filter(([key, _]) => keys.includes(key))
+    .reduce((p, [k, v]) => ({...p, [k]: v}), {} as Partial<T>);
+}
+
+export function momentsToTimestamps(obj: any, firestore: Firestore): any {
   if (moment.isMoment(obj)) {
     return firestore.Timestamp.fromDate(obj.toDate())
   } else if (isTimestamp(obj, firestore)) {
@@ -51,7 +59,7 @@ export function momentsToTimestamps(obj: any, firestore: any): any {
   }
 }
   
-export function timestampsToMoments(obj: any, firestore: any): any {
+export function timestampsToMoments(obj: any, firestore: Firestore): any {
   if (moment.isMoment(obj)) {
     return obj;
   } else if (isTimestamp(obj, firestore)) {
@@ -69,6 +77,6 @@ export function timestampsToMoments(obj: any, firestore: any): any {
   }
 }
   
-export function isTimestamp(v: any, firestore): boolean {
+export function isTimestamp(v: any, firestore: Firestore): boolean {
   return v instanceof firestore.Timestamp;
 }
