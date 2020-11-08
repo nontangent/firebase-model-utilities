@@ -45,7 +45,7 @@ export function momentsToTimestamps(obj: any, firestore: Firestore): any {
     return firestore.Timestamp.fromDate(obj.toDate())
   } else if (isTimestamp(obj, firestore)) {
     return obj;
-  } if (obj instanceof firestore.FieldValue) {
+  } if (isFieldValue(obj, firestore)) {
     return obj;
   } else if (obj instanceof Array) {
     return obj.map(value => momentsToTimestamps(value, firestore));
@@ -64,10 +64,10 @@ export function timestampsToMoments(obj: any, firestore: Firestore): any {
     return obj;
   } else if (isTimestamp(obj, firestore)) {
     return moment(obj.toDate());
-  } else if (firestore.FieldValue && obj instanceof firestore.FieldValue) {
+  } else if (isFieldValue(obj, firestore)) {
     return obj;
   } else if (obj instanceof Array) {
-    return obj.map(v => timestampsToMoments(v, firestore.Timestamp));
+    return obj.map(v => timestampsToMoments(v, firestore));
   } else if (typeof obj === 'object' && obj) {
     return Object.entries(obj).reduce((p, [k, v]) => ({
       ...p, [k]: timestampsToMoments(v, firestore)
@@ -79,4 +79,8 @@ export function timestampsToMoments(obj: any, firestore: Firestore): any {
   
 export function isTimestamp(v: any, firestore: Firestore): boolean {
   return v instanceof firestore.Timestamp;
+}
+
+export function isFieldValue(v: any, firestore: Firestore): boolean {
+  return v instanceof firestore.FieldValue;
 }
