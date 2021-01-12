@@ -16,6 +16,6 @@ export function generateRandomString(
     }, '');
   }
   
-  export function generateId() {
-    return generateRandomString(20, true, true, true, false);
+  export function generateId(n: number = 20) {
+    return generateRandomString(n, true, true, true, false);
   }
